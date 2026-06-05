@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BrainBusters – Quiz</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0d0d14;
+  --surface: #16161f;
+  --surface2: #1e1e2a;
+  --accent: #f0c040;
+  --accent2: #e05a30;
+  --text: #f0eee8;
+  --text-muted: #888;
+  --radius: 14px;
+  --success: #3ecf8e;
+  --danger: #e05a30;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: 'Outfit', sans-serif; min-height: 100vh; }
+
+/* Stars background */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: radial-gradient(1px 1px at 20% 30%, rgba(240,192,64,0.3) 0%, transparent 100%),
+    radial-gradient(1px 1px at 80% 10%, rgba(240,192,64,0.2) 0%, transparent 100%),
+    radial-gradient(1px 1px at 50% 80%, rgba(240,192,64,0.15) 0%, transparent 100%),
+    radial-gradient(1px 1px at 10% 70%, rgba(240,192,64,0.1) 0%, transparent 100%);
+  pointer-events: none; z-index: 0;
+}
+
+.container { max-width: 900px; margin: 0 auto; padding: 0 1.5rem; position: relative; z-index: 1; }
+
+/* NAV */
+nav { display: flex; align-items: center; justify-content: space-between; padding: 1.2rem 0; border-bottom: 1px solid rgba(240,192,64,0.1); }
+.logo { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; color: var(--accent); letter-spacing: 2px; }
+.logo span { color: var(--accent2); }
+.nav-right { display: flex; gap: 1rem; align-items: center; }
+.nav-link { color: var(--text-muted); text-decoration: none; font-size: 0.9rem; transition: color 0.2s; }
+.nav-link:hover { color: var(--accent); }
+
+/* HERO */
+.hero { text-align: center; padding: 4rem 0 3rem; }
+.hero h1 { font-family: 'Bebas Neue', sans-serif; font-size: clamp(3.5rem, 10vw, 7rem); line-height: 0.9; color: var(--accent); letter-spacing: 4px; }
+.hero h1 span { color: var(--text); display: block; }
+.hero p { color: var(--text-muted); margin-top: 1.5rem; font-size: 1.1rem; max-width: 500px; margin-left: auto; margin-right: auto; }
+.hero-btns { display: flex; gap: 1rem; justify-content: center; margin-top: 2.5rem; flex-wrap: wrap; }
+
+/* BUTTONS */
+.btn { padding: 0.85rem 2rem; border-radius: var(--radius); font-family: 'Outfit', sans-serif; font-size: 1rem; font-weight: 600; cursor: pointer; border: none; transition: all 0.2s; text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem; }
+.btn-primary { background: var(--accent); color: #0d0d14; }
+.btn-primary:hover { background: #f7d060; transform: translateY(-2px); }
+.btn-outline { background: transparent; color: var(--text); border: 1.5px solid rgba(240,192,64,0.4); }
+.btn-outline:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-2px); }
+.btn-sm { padding: 0.5rem 1.2rem; font-size: 0.88rem; }
+.btn-danger { background: var(--danger); color: white; }
+.btn-danger:hover { background: #f07050; transform: translateY(-2px); }
+
+/* CARDS */
+.card { background: var(--surface); border: 1px solid rgba(255,255,255,0.06); border-radius: var(--radius); padding: 1.5rem; }
+
+/* AUTH SECTION */
+.auth-section { display: none; }
+.auth-section.active { display: block; }
+.auth-tabs { display: flex; gap: 0; margin-bottom: 1.5rem; background: var(--surface2); border-radius: 10px; padding: 4px; }
+.auth-tab { flex: 1; padding: 0.6rem; text-align: center; border: none; background: transparent; color: var(--text-muted); border-radius: 8px; cursor: pointer; font-family: 'Outfit', sans-serif; font-size: 0.9rem; transition: all 0.2s; }
+.auth-tab.active { background: var(--surface); color: var(--accent); font-weight: 600; }
+.form-group { margin-bottom: 1rem; }
+.form-group label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.4rem; }
+.form-group input { width: 100%; padding: 0.8rem 1rem; background: var(--surface2); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; color: var(--text); font-family: 'Outfit', sans-serif; font-size: 0.95rem; outline: none; transition: border-color 0.2s; }
+.form-group input:focus { border-color: var(--accent); }
+.error-msg { color: var(--danger); font-size: 0.85rem; margin-top: 0.5rem; display: none; }
+.success-msg { color: var(--success); font-size: 0.85rem; margin-top: 0.5rem; display: none; }
+
+/* LEADERBOARD */
+.section-title { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; color: var(--text); letter-spacing: 2px; margin-bottom: 1.5rem; }
+.section-title span { color: var(--accent); }
+.leaderboard { }
+.lb-header { display: grid; grid-template-columns: 50px 1fr 120px 100px 100px; gap: 1rem; padding: 0.6rem 1rem; font-size: 0.78rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+.lb-row { display: grid; grid-template-columns: 50px 1fr 120px 100px 100px; gap: 1rem; align-items: center; padding: 1rem; background: var(--surface); border: 1px solid rgba(255,255,255,0.05); border-radius: 10px; margin-bottom: 0.5rem; transition: all 0.2s; }
+.lb-row:hover { border-color: rgba(240,192,64,0.2); transform: translateX(4px); }
+.lb-rank { font-family: 'Bebas Neue', sans-serif; font-size: 1.3rem; }
+.lb-rank.gold { color: #f0c040; }
+.lb-rank.silver { color: #c0c0c0; }
+.lb-rank.bronze { color: #cd7f32; }
+.lb-name { font-weight: 600; }
+.lb-score { font-family: 'Bebas Neue', sans-serif; font-size: 1.2rem; color: var(--accent); }
+.lb-games { color: var(--text-muted); font-size: 0.9rem; }
+.lb-avg { color: var(--success); font-size: 0.9rem; font-weight: 500; }
+
+/* USER INFO */
+.user-bar { display: flex; align-items: center; gap: 0.8rem; background: var(--surface); border-radius: 12px; padding: 0.7rem 1.2rem; border: 1px solid rgba(240,192,64,0.15); }
+.user-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem; color: #0d0d14; }
+.user-name { font-weight: 600; font-size: 0.95rem; }
+
+/* MODAL */
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 100; align-items: center; justify-content: center; }
+.modal-overlay.active { display: flex; }
+.modal { background: var(--surface); border: 1px solid rgba(240,192,64,0.2); border-radius: 18px; padding: 2rem; width: min(480px, 90vw); }
+.modal-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; color: var(--accent); margin-bottom: 1.5rem; }
+
+/* SECTIONS */
+.section { padding: 3rem 0; }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+@media (max-width: 600px) { .grid-2 { grid-template-columns: 1fr; } .lb-header, .lb-row { grid-template-columns: 40px 1fr 80px; } .lb-games, .lb-avg { display: none; } }
+
+/* FEATURES */
+.feature-card { text-align: center; padding: 2rem 1.5rem; }
+.feature-icon { font-size: 2.5rem; margin-bottom: 1rem; }
+.feature-title { font-weight: 700; font-size: 1.1rem; margin-bottom: 0.5rem; }
+.feature-desc { color: var(--text-muted); font-size: 0.9rem; line-height: 1.6; }
+
+/* TAG */
+.tag { display: inline-block; padding: 0.25rem 0.7rem; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+.tag-gold { background: rgba(240,192,64,0.15); color: var(--accent); }
+.tag-red { background: rgba(224,90,48,0.15); color: var(--accent2); }
+.tag-green { background: rgba(62,207,142,0.15); color: var(--success); }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <!-- NAV -->
+  <nav>
+    <div class="logo">Brain<span>Busters</span></div>
+    <div class="nav-right" id="nav-right">
+      <a href="/admin" class="nav-link">⚙️ Admin</a>
+      <div id="nav-guest">
+        <button class="btn btn-outline btn-sm" onclick="openAuthModal('login')">Anmelden</button>
+      </div>
+      <div id="nav-user" style="display:none; align-items:center; gap:1rem;">
+        <div class="user-bar">
+          <div class="user-avatar" id="nav-avatar">?</div>
+          <span class="user-name" id="nav-username"></span>
+        </div>
+        <button class="btn btn-outline btn-sm" onclick="logout()">Abmelden</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <div class="hero">
+    <h1>Brain<span>Busters</span></h1>
+    <p>Teste dein Wissen, schlage deine Freunde und kletter auf die Rangliste. Das ultimative Quiz-Erlebnis!</p>
+    <div class="hero-btns">
+      <a href="/game" class="btn btn-primary">🎮 Jetzt spielen</a>
+      <button class="btn btn-outline" onclick="openAuthModal('register')">✨ Registrieren</button>
+    </div>
+  </div>
+
+  <!-- FEATURES -->
+  <div class="section">
+    <div class="grid-2" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+      <div class="card feature-card">
+        <div class="feature-icon">🏆</div>
+        <div class="feature-title">Rangliste</div>
+        <div class="feature-desc">Zeig der Welt, was du drauf hast. Die globale Bestenliste wartet!</div>
+      </div>
+      <div class="card feature-card">
+        <div class="feature-icon">⚡</div>
+        <div class="feature-title">Zeitbonus</div>
+        <div class="feature-desc">Schnelle Antworten bringen mehr Punkte. Reagiere blitzschnell!</div>
+      </div>
+      <div class="card feature-card">
+        <div class="feature-icon">🆚</div>
+        <div class="feature-title">Multiplayer</div>
+        <div class="feature-desc">Tritt gegen Freunde oder zufällige Gegner in Echtzeit an.</div>
+      </div>
+      <div class="card feature-card">
+        <div class="feature-icon">🧠</div>
+        <div class="feature-title">6 Kategorien</div>
+        <div class="feature-desc">Allgemeinwissen, Wissenschaft, Geschichte, Sport, Technik & Geografie.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LEADERBOARD -->
+  <div class="section">
+    <h2 class="section-title">🏆 <span>Rangliste</span></h2>
+    <div class="lb-header">
+      <span>#</span><span>Spieler</span><span>Punkte</span><span>Spiele</span><span>Ø Punkte</span>
+    </div>
+    <div id="leaderboard-list">
+      <div style="text-align:center; color:var(--text-muted); padding:2rem;">Lade Rangliste...</div>
+    </div>
+    <div style="text-align:center; margin-top:1.5rem;">
+      <a href="/game" class="btn btn-primary">🎮 Mitspielen & aufsteigen</a>
+    </div>
+  </div>
+</div>
+
+<!-- AUTH MODAL -->
+<div class="modal-overlay" id="auth-modal">
+  <div class="modal">
+    <div class="modal-title" id="modal-title">Anmelden</div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tab-login" onclick="switchTab('login')">Anmelden</button>
+      <button class="auth-tab" id="tab-register" onclick="switchTab('register')">Registrieren</button>
+    </div>
+    <div class="form-group">
+      <label>Benutzername</label>
+      <input type="text" id="auth-username" placeholder="Dein Username" autocomplete="username">
+    </div>
+    <div class="form-group">
+      <label>Passwort</label>
+      <input type="password" id="auth-password" placeholder="Dein Passwort" autocomplete="current-password">
+    </div>
+    <div class="error-msg" id="auth-error"></div>
+    <div class="success-msg" id="auth-success"></div>
+    <div style="display:flex; gap:1rem; margin-top:1.5rem;">
+      <button class="btn btn-primary" style="flex:1" id="auth-submit" onclick="submitAuth()">Anmelden</button>
+      <button class="btn btn-outline" onclick="closeAuthModal()">Abbrechen</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let currentTab = 'login';
+
+async function checkLogin() {
+  const res = await fetch('/api/me');
+  const data = await res.json();
+  if (data.logged_in) {
+    document.getElementById('nav-guest').style.display = 'none';
+    document.getElementById('nav-user').style.display = 'flex';
+    document.getElementById('nav-username').textContent = data.username;
+    document.getElementById('nav-avatar').textContent = data.username[0].toUpperCase();
+  }
+}
+
+function openAuthModal(tab) {
+  document.getElementById('auth-modal').classList.add('active');
+  switchTab(tab || 'login');
+}
+function closeAuthModal() {
+  document.getElementById('auth-modal').classList.remove('active');
+  document.getElementById('auth-error').style.display = 'none';
+  document.getElementById('auth-success').style.display = 'none';
+}
+function switchTab(tab) {
+  currentTab = tab;
+  document.getElementById('tab-login').classList.toggle('active', tab === 'login');
+  document.getElementById('tab-register').classList.toggle('active', tab === 'register');
+  document.getElementById('modal-title').textContent = tab === 'login' ? 'Anmelden' : 'Registrieren';
+  document.getElementById('auth-submit').textContent = tab === 'login' ? 'Anmelden' : 'Registrieren';
+  document.getElementById('auth-error').style.display = 'none';
+}
+
+async function submitAuth() {
+  const username = document.getElementById('auth-username').value.trim();
+  const password = document.getElementById('auth-password').value;
+  const errEl = document.getElementById('auth-error');
+  const sucEl = document.getElementById('auth-success');
+  errEl.style.display = 'none'; sucEl.style.display = 'none';
+
+  const url = currentTab === 'login' ? '/api/login' : '/api/register';
+  const res = await fetch(url, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({username, password}) });
+  const data = await res.json();
+
+  if (data.error) {
+    errEl.textContent = data.error; errEl.style.display = 'block';
+  } else {
+    sucEl.textContent = `Willkommen, ${data.username}! 🎉`; sucEl.style.display = 'block';
+    setTimeout(() => { closeAuthModal(); checkLogin(); }, 1000);
+  }
+}
+
+async function logout() {
+  await fetch('/api/logout', {method:'POST'});
+  location.reload();
+}
+
+async function loadLeaderboard() {
+  const res = await fetch('/api/leaderboard');
+  const data = await res.json();
+  const el = document.getElementById('leaderboard-list');
+  if (!data.length) { el.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:2rem;">Noch keine Spieler. Sei der Erste! 🏆</div>'; return; }
+  const rankClass = i => i===0?'gold':i===1?'silver':i===2?'bronze':'';
+  el.innerHTML = data.map((p,i) => `
+    <div class="lb-row">
+      <div class="lb-rank ${rankClass(i)}">${i===0?'🥇':i===1?'🥈':i===2?'🥉':i+1}</div>
+      <div class="lb-name">${p.username}</div>
+      <div class="lb-score">${p.total_score.toLocaleString()}</div>
+      <div class="lb-games">${p.games_played} Spiele</div>
+      <div class="lb-avg">⌀ ${p.avg_score}</div>
+    </div>`).join('');
+}
+
+// Enter-Taste für Login
+document.getElementById('auth-password').addEventListener('keydown', e => { if(e.key==='Enter') submitAuth(); });
+document.addEventListener('DOMContentLoaded', () => { checkLogin(); loadLeaderboard(); });
+</script>
+</body>
+</html>

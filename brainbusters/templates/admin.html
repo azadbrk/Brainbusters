@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BrainBusters – Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root { --bg:#0d0d14;--surface:#16161f;--surface2:#1e1e2a;--accent:#f0c040;--accent2:#e05a30;--text:#f0eee8;--text-muted:#888;--radius:14px;--success:#3ecf8e;--danger:#e05a30; }
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-height:100vh;}
+.container{max-width:1000px;margin:0 auto;padding:0 1.5rem;}
+nav{display:flex;align-items:center;justify-content:space-between;padding:1.2rem 0;border-bottom:1px solid rgba(240,192,64,0.1);}
+.logo{font-family:'Bebas Neue',sans-serif;font-size:1.8rem;color:var(--accent);letter-spacing:2px;text-decoration:none;}
+.logo span{color:var(--accent2);}
+.btn{padding:0.65rem 1.3rem;border-radius:10px;font-family:'Outfit',sans-serif;font-size:0.9rem;font-weight:600;cursor:pointer;border:none;transition:all 0.2s;text-decoration:none;display:inline-flex;align-items:center;gap:0.4rem;}
+.btn-primary{background:var(--accent);color:#0d0d14;}
+.btn-primary:hover{background:#f7d060;}
+.btn-outline{background:transparent;color:var(--text);border:1.5px solid rgba(240,192,64,0.3);}
+.btn-outline:hover{border-color:var(--accent);color:var(--accent);}
+.btn-danger{background:rgba(224,90,48,0.15);color:var(--danger);border:1px solid rgba(224,90,48,0.2);}
+.btn-danger:hover{background:rgba(224,90,48,0.25);}
+.btn-sm{padding:0.4rem 0.9rem;font-size:0.8rem;}
+
+/* STATS */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin:2rem 0;}
+@media(max-width:600px){.stats-grid{grid-template-columns:repeat(2,1fr);}}
+.stat-box{background:var(--surface);border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:1.2rem;text-align:center;}
+.stat-num{font-family:'Bebas Neue',sans-serif;font-size:2.5rem;color:var(--accent);}
+.stat-lbl{font-size:0.8rem;color:var(--text-muted);margin-top:0.2rem;}
+
+/* TABS */
+.tabs{display:flex;gap:0.5rem;margin-bottom:2rem;border-bottom:1px solid rgba(255,255,255,0.06);}
+.tab{padding:0.8rem 1.5rem;background:transparent;border:none;color:var(--text-muted);font-family:'Outfit',sans-serif;font-size:0.95rem;cursor:pointer;border-bottom:2px solid transparent;transition:all 0.2s;font-weight:500;}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+.tab-content{display:none;}
+.tab-content.active{display:block;}
+
+/* FORM */
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;}
+@media(max-width:600px){.form-row{grid-template-columns:1fr;}}
+.form-group{margin-bottom:1rem;}
+.form-group label{display:block;font-size:0.82rem;color:var(--text-muted);margin-bottom:0.4rem;font-weight:500;}
+.form-group input,.form-group select,.form-group textarea{width:100%;padding:0.75rem 1rem;background:var(--surface2);border:1px solid rgba(255,255,255,0.08);border-radius:10px;color:var(--text);font-family:'Outfit',sans-serif;font-size:0.9rem;outline:none;transition:border-color 0.2s;}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--accent);}
+.form-group select option{background:var(--surface2);}
+.form-card{background:var(--surface);border:1px solid rgba(255,255,255,0.06);border-radius:var(--radius);padding:1.5rem;margin-bottom:2rem;}
+.form-title{font-family:'Bebas Neue',sans-serif;font-size:1.5rem;color:var(--accent);margin-bottom:1.2rem;letter-spacing:1px;}
+
+/* TABLE */
+.table-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:0.88rem;}
+th{text-align:left;padding:0.7rem 1rem;background:var(--surface2);color:var(--text-muted);font-size:0.75rem;text-transform:uppercase;letter-spacing:0.8px;font-weight:500;}
+th:first-child{border-radius:8px 0 0 8px;}
+th:last-child{border-radius:0 8px 8px 0;}
+td{padding:0.85rem 1rem;border-bottom:1px solid rgba(255,255,255,0.04);}
+tr:hover td{background:rgba(255,255,255,0.02);}
+.diff-badge{display:inline-block;padding:0.2rem 0.6rem;border-radius:20px;font-size:0.72rem;font-weight:600;}
+.diff-1{background:rgba(62,207,142,0.15);color:var(--success);}
+.diff-2{background:rgba(240,192,64,0.15);color:var(--accent);}
+.diff-3{background:rgba(224,90,48,0.15);color:var(--danger);}
+
+.answer-col{font-size:0.8rem;color:var(--text-muted);}
+.answer-correct{color:var(--success);font-weight:600;}
+.msg{padding:0.8rem 1rem;border-radius:8px;font-size:0.88rem;margin-top:0.8rem;display:none;}
+.msg-ok{background:rgba(62,207,142,0.1);color:var(--success);}
+.msg-err{background:rgba(224,90,48,0.1);color:var(--danger);}
+.page-title{font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--accent);letter-spacing:2px;margin:2rem 0 0.3rem;}
+.page-sub{color:var(--text-muted);font-size:0.95rem;margin-bottom:2rem;}
+.filter-bar{display:flex;gap:1rem;margin-bottom:1.2rem;flex-wrap:wrap;}
+.filter-bar input,.filter-bar select{padding:0.6rem 1rem;background:var(--surface2);border:1px solid rgba(255,255,255,0.08);border-radius:8px;color:var(--text);font-family:'Outfit',sans-serif;font-size:0.88rem;outline:none;}
+</style>
+</head>
+<body>
+<div class="container">
+  <nav>
+    <a href="/" class="logo">Brain<span>Busters</span> <span style="font-size:1rem;color:var(--text-muted);">Admin</span></a>
+    <a href="/" class="btn btn-outline">← Zurück</a>
+  </nav>
+
+  <div class="page-title">⚙️ Admin Backend</div>
+  <div class="page-sub">Fragen und Kategorien verwalten, Statistiken einsehen.</div>
+
+  <!-- STATS -->
+  <div class="stats-grid" id="stats-grid">
+    <div class="stat-box"><div class="stat-num" id="s-users">–</div><div class="stat-lbl">Spieler</div></div>
+    <div class="stat-box"><div class="stat-num" id="s-questions">–</div><div class="stat-lbl">Fragen</div></div>
+    <div class="stat-box"><div class="stat-num" id="s-games">–</div><div class="stat-lbl">Spiele</div></div>
+    <div class="stat-box"><div class="stat-num" id="s-categories">–</div><div class="stat-lbl">Kategorien</div></div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('questions')">📝 Fragen</button>
+    <button class="tab" onclick="switchTab('add-question')">➕ Frage hinzufügen</button>
+    <button class="tab" onclick="switchTab('categories')">🗂️ Kategorien</button>
+  </div>
+
+  <!-- TAB: QUESTIONS -->
+  <div class="tab-content active" id="tab-questions">
+    <div class="filter-bar">
+      <input type="text" id="q-filter" placeholder="🔍 Frage suchen..." oninput="filterQuestions()" style="flex:1;min-width:200px;">
+      <select id="cat-filter" onchange="filterQuestions()">
+        <option value="">Alle Kategorien</option>
+      </select>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th style="width:40px;">#</th>
+          <th>Frage</th>
+          <th style="width:130px;">Kategorie</th>
+          <th>Antworten (A/B/C/D)</th>
+          <th style="width:80px;">Schwer.</th>
+          <th style="width:80px;">Aktion</th>
+        </tr></thead>
+        <tbody id="questions-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- TAB: ADD QUESTION -->
+  <div class="tab-content" id="tab-add-question">
+    <div class="form-card">
+      <div class="form-title">Neue Frage hinzufügen</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Kategorie *</label>
+          <select id="new-cat"></select>
+        </div>
+        <div class="form-group">
+          <label>Schwierigkeit *</label>
+          <select id="new-diff">
+            <option value="1">⭐ Leicht</option>
+            <option value="2">⭐⭐ Mittel</option>
+            <option value="3">⭐⭐⭐ Schwer</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Frage *</label>
+        <textarea id="new-question" rows="2" placeholder="Was ist die Hauptstadt von..."></textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Antwort A *</label>
+          <input type="text" id="new-a" placeholder="Antwort A">
+        </div>
+        <div class="form-group">
+          <label>Antwort B *</label>
+          <input type="text" id="new-b" placeholder="Antwort B">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Antwort C *</label>
+          <input type="text" id="new-c" placeholder="Antwort C">
+        </div>
+        <div class="form-group">
+          <label>Antwort D *</label>
+          <input type="text" id="new-d" placeholder="Antwort D">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Richtige Antwort *</label>
+        <select id="new-correct">
+          <option value="A">A</option>
+          <option value="B">B</option>
+          <option value="C">C</option>
+          <option value="D">D</option>
+        </select>
+      </div>
+      <button class="btn btn-primary" onclick="addQuestion()">✅ Frage hinzufügen</button>
+      <div class="msg msg-ok" id="add-q-ok">Frage erfolgreich hinzugefügt!</div>
+      <div class="msg msg-err" id="add-q-err"></div>
+    </div>
+  </div>
+
+  <!-- TAB: CATEGORIES -->
+  <div class="tab-content" id="tab-categories">
+    <div class="form-card">
+      <div class="form-title">Neue Kategorie hinzufügen</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Name *</label>
+          <input type="text" id="new-cat-name" placeholder="Kategoriename">
+        </div>
+        <div class="form-group">
+          <label>Icon (Emoji)</label>
+          <input type="text" id="new-cat-icon" placeholder="🧠" maxlength="4">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Beschreibung</label>
+        <input type="text" id="new-cat-desc" placeholder="Kurze Beschreibung...">
+      </div>
+      <button class="btn btn-primary" onclick="addCategory()">➕ Kategorie erstellen</button>
+      <div class="msg msg-ok" id="add-cat-ok">Kategorie erstellt!</div>
+      <div class="msg msg-err" id="add-cat-err"></div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>Icon</th><th>Name</th><th>Beschreibung</th><th>Fragen</th>
+        </tr></thead>
+        <tbody id="cats-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+let allQuestions = [];
+let allCategories = [];
+
+async function loadStats() {
+  const r = await fetch('/api/admin/stats');
+  const s = await r.json();
+  document.getElementById('s-users').textContent = s.total_users;
+  document.getElementById('s-questions').textContent = s.total_questions;
+  document.getElementById('s-games').textContent = s.total_games;
+  document.getElementById('s-categories').textContent = s.total_categories;
+}
+
+async function loadQuestions() {
+  const r = await fetch('/api/admin/questions');
+  allQuestions = await r.json();
+  renderQuestions(allQuestions);
+}
+
+function renderQuestions(questions) {
+  const tbody = document.getElementById('questions-tbody');
+  tbody.innerHTML = questions.map(q => `
+    <tr>
+      <td style="color:var(--text-muted);">${q.id}</td>
+      <td style="max-width:250px;">${q.question}</td>
+      <td>${q.category_name}</td>
+      <td class="answer-col">
+        <span class="${q.correct_answer==='A'?'answer-correct':''}">A: ${q.answer_a}</span> ·
+        <span class="${q.correct_answer==='B'?'answer-correct':''}">B: ${q.answer_b}</span> ·
+        <span class="${q.correct_answer==='C'?'answer-correct':''}">C: ${q.answer_c}</span> ·
+        <span class="${q.correct_answer==='D'?'answer-correct':''}">D: ${q.answer_d}</span>
+      </td>
+      <td><span class="diff-badge diff-${q.difficulty}">${'⭐'.repeat(q.difficulty)}</span></td>
+      <td><button class="btn btn-danger btn-sm" onclick="deleteQuestion(${q.id})">🗑 Löschen</button></td>
+    </tr>`).join('');
+}
+
+function filterQuestions() {
+  const text = document.getElementById('q-filter').value.toLowerCase();
+  const cat = document.getElementById('cat-filter').value;
+  const filtered = allQuestions.filter(q =>
+    (q.question.toLowerCase().includes(text)) &&
+    (!cat || q.category_id == cat)
+  );
+  renderQuestions(filtered);
+}
+
+async function deleteQuestion(id) {
+  if (!confirm('Frage wirklich löschen?')) return;
+  await fetch(`/api/admin/questions/${id}`, {method:'DELETE'});
+  loadQuestions(); loadStats();
+}
+
+async function loadCategories() {
+  const r = await fetch('/api/categories');
+  allCategories = await r.json();
+
+  // Dropdown füllen
+  const selects = [document.getElementById('new-cat'), document.getElementById('cat-filter')];
+  selects.forEach(s => {
+    if (!s) return;
+    const extra = s.id === 'cat-filter' ? '<option value="">Alle Kategorien</option>' : '';
+    s.innerHTML = extra + allCategories.map(c => `<option value="${c.id}">${c.icon} ${c.name}</option>`).join('');
+  });
+
+  // Tabelle
+  document.getElementById('cats-tbody').innerHTML = allCategories.map(c => `
+    <tr>
+      <td style="font-size:1.5rem;">${c.icon}</td>
+      <td style="font-weight:600;">${c.name}</td>
+      <td style="color:var(--text-muted);">${c.description}</td>
+      <td><span style="color:var(--accent);font-weight:600;">${c.question_count}</span></td>
+    </tr>`).join('');
+}
+
+async function addQuestion() {
+  const data = {
+    category_id: parseInt(document.getElementById('new-cat').value),
+    question: document.getElementById('new-question').value.trim(),
+    answer_a: document.getElementById('new-a').value.trim(),
+    answer_b: document.getElementById('new-b').value.trim(),
+    answer_c: document.getElementById('new-c').value.trim(),
+    answer_d: document.getElementById('new-d').value.trim(),
+    correct_answer: document.getElementById('new-correct').value,
+    difficulty: parseInt(document.getElementById('new-diff').value)
+  };
+
+  if (!data.question || !data.answer_a || !data.answer_b || !data.answer_c || !data.answer_d) {
+    showMsg('add-q-err', 'Bitte alle Felder ausfüllen!'); return;
+  }
+
+  const r = await fetch('/api/admin/questions', {
+    method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data)
+  });
+  const res = await r.json();
+  if (res.error) { showMsg('add-q-err', res.error); return; }
+  showMsg('add-q-ok', '');
+  ['new-question','new-a','new-b','new-c','new-d'].forEach(id => document.getElementById(id).value='');
+  loadQuestions(); loadStats();
+}
+
+async function addCategory() {
+  const name = document.getElementById('new-cat-name').value.trim();
+  const icon = document.getElementById('new-cat-icon').value || '🧠';
+  const desc = document.getElementById('new-cat-desc').value.trim();
+  if (!name) { showMsg('add-cat-err', 'Name erforderlich!'); return; }
+
+  const r = await fetch('/api/admin/categories', {
+    method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name,icon,description:desc})
+  });
+  const res = await r.json();
+  if (res.error) { showMsg('add-cat-err', res.error); return; }
+  showMsg('add-cat-ok', '');
+  ['new-cat-name','new-cat-icon','new-cat-desc'].forEach(id => document.getElementById(id).value='');
+  loadCategories(); loadStats();
+}
+
+function showMsg(id, text) {
+  const el = document.getElementById(id);
+  if (text) el.textContent = text;
+  el.style.display = 'block';
+  setTimeout(() => el.style.display = 'none', 3000);
+}
+
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  const tabs = ['questions','add-question','categories'];
+  const idx = tabs.indexOf(name);
+  document.querySelectorAll('.tab')[idx].classList.add('active');
+  document.getElementById(`tab-${name}`).classList.add('active');
+}
+
+loadStats(); loadQuestions(); loadCategories();
+</script>
+</body>
+</html>

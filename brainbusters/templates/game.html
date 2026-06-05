@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BrainBusters – Spielen</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0d0d14; --surface: #16161f; --surface2: #1e1e2a;
+  --accent: #f0c040; --accent2: #e05a30; --text: #f0eee8;
+  --text-muted: #888; --radius: 14px; --success: #3ecf8e; --danger: #e05a30;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: 'Outfit', sans-serif; min-height: 100vh; }
+.container { max-width: 720px; margin: 0 auto; padding: 0 1.5rem; }
+nav { display: flex; align-items: center; justify-content: space-between; padding: 1.2rem 0; border-bottom: 1px solid rgba(240,192,64,0.1); }
+.logo { font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; color: var(--accent); letter-spacing: 2px; text-decoration: none; }
+.logo span { color: var(--accent2); }
+.btn { padding: 0.75rem 1.5rem; border-radius: var(--radius); font-family: 'Outfit', sans-serif; font-size: 0.95rem; font-weight: 600; cursor: pointer; border: none; transition: all 0.2s; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem; }
+.btn-primary { background: var(--accent); color: #0d0d14; }
+.btn-primary:hover { background: #f7d060; transform: translateY(-1px); }
+.btn-outline { background: transparent; color: var(--text); border: 1.5px solid rgba(240,192,64,0.3); }
+.btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+.btn-success { background: var(--success); color: #0d0d14; }
+.btn-sm { padding: 0.5rem 1.1rem; font-size: 0.85rem; }
+
+/* SCREEN SYSTEM */
+.screen { display: none; padding: 2rem 0; }
+.screen.active { display: block; }
+
+/* LOBBY */
+.screen-title { font-family: 'Bebas Neue', sans-serif; font-size: 2.5rem; color: var(--accent); letter-spacing: 2px; margin-bottom: 0.5rem; }
+.screen-subtitle { color: var(--text-muted); margin-bottom: 2rem; }
+.mode-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 2rem; }
+@media(max-width:500px){.mode-grid{grid-template-columns:1fr;}}
+.mode-card { background: var(--surface); border: 2px solid rgba(255,255,255,0.05); border-radius: var(--radius); padding: 1.5rem; cursor: pointer; transition: all 0.2s; text-align: center; }
+.mode-card:hover, .mode-card.selected { border-color: var(--accent); background: rgba(240,192,64,0.05); }
+.mode-icon { font-size: 2.5rem; margin-bottom: 0.8rem; }
+.mode-title { font-weight: 700; font-size: 1.1rem; margin-bottom: 0.3rem; }
+.mode-desc { color: var(--text-muted); font-size: 0.85rem; }
+.category-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 0.75rem; margin-bottom: 2rem; }
+.cat-card { background: var(--surface); border: 1.5px solid rgba(255,255,255,0.05); border-radius: 10px; padding: 1rem; cursor: pointer; transition: all 0.2s; text-align: center; }
+.cat-card:hover, .cat-card.selected { border-color: var(--accent); background: rgba(240,192,64,0.06); }
+.cat-icon { font-size: 1.8rem; margin-bottom: 0.5rem; }
+.cat-name { font-size: 0.9rem; font-weight: 600; }
+.cat-count { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem; }
+
+/* QUIZ */
+.quiz-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; }
+.progress-bar-wrap { flex: 1; height: 6px; background: var(--surface2); border-radius: 3px; margin: 0 1rem; }
+.progress-bar { height: 100%; background: var(--accent); border-radius: 3px; transition: width 0.4s; }
+.q-counter { font-size: 0.85rem; color: var(--text-muted); white-space: nowrap; }
+.score-display { font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem; color: var(--accent); }
+
+/* TIMER */
+.timer-ring { position: relative; width: 70px; height: 70px; flex-shrink: 0; }
+.timer-ring svg { transform: rotate(-90deg); }
+.timer-ring circle { fill: none; stroke-width: 5; }
+.timer-track { stroke: var(--surface2); }
+.timer-fill { stroke: var(--accent); stroke-dasharray: 188; stroke-dashoffset: 0; transition: stroke-dashoffset 0.2s linear, stroke 0.3s; stroke-linecap: round; }
+.timer-text { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-family: 'Bebas Neue', sans-serif; font-size: 1.4rem; }
+
+/* QUESTION */
+.question-card { background: var(--surface); border: 1px solid rgba(255,255,255,0.06); border-radius: 18px; padding: 2rem; margin-bottom: 1.5rem; }
+.question-category { font-size: 0.78rem; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.8rem; font-weight: 600; }
+.question-text { font-size: 1.3rem; font-weight: 600; line-height: 1.5; }
+.difficulty-stars { margin-top: 0.8rem; color: var(--accent); font-size: 0.85rem; }
+
+/* ANSWERS */
+.answers-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+@media(max-width:480px){.answers-grid{grid-template-columns:1fr;}}
+.answer-btn { background: var(--surface); border: 1.5px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 1rem 1.2rem; cursor: pointer; transition: all 0.15s; text-align: left; display: flex; align-items: center; gap: 0.8rem; color: var(--text); font-family: 'Outfit', sans-serif; font-size: 0.95rem; font-weight: 500; }
+.answer-btn:hover:not(:disabled) { border-color: var(--accent); background: rgba(240,192,64,0.06); transform: translateY(-1px); }
+.answer-btn:disabled { cursor: not-allowed; }
+.answer-btn.correct { border-color: var(--success); background: rgba(62,207,142,0.1); }
+.answer-btn.wrong { border-color: var(--danger); background: rgba(224,90,48,0.1); }
+.answer-key { width: 30px; height: 30px; border-radius: 8px; background: var(--surface2); display: flex; align-items: center; justify-content: center; font-family: 'Bebas Neue', sans-serif; font-size: 1rem; flex-shrink: 0; }
+.answer-btn.correct .answer-key { background: var(--success); color: #0d0d14; }
+.answer-btn.wrong .answer-key { background: var(--danger); color: white; }
+
+/* FEEDBACK */
+.feedback-bar { padding: 1rem 1.5rem; border-radius: 12px; margin-top: 1rem; font-weight: 600; display: none; align-items: center; justify-content: space-between; gap: 1rem; }
+.feedback-bar.correct { background: rgba(62,207,142,0.12); border: 1px solid rgba(62,207,142,0.3); color: var(--success); display: flex; }
+.feedback-bar.wrong { background: rgba(224,90,48,0.12); border: 1px solid rgba(224,90,48,0.3); color: var(--danger); display: flex; }
+.feedback-points { font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem; }
+
+/* RESULTS */
+.results-hero { text-align: center; padding: 2rem 0; }
+.results-score { font-family: 'Bebas Neue', sans-serif; font-size: 5rem; color: var(--accent); line-height: 1; }
+.results-label { color: var(--text-muted); margin-top: 0.5rem; font-size: 1.1rem; }
+.results-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin: 2rem 0; }
+.stat-card { background: var(--surface); border-radius: 12px; padding: 1rem; text-align: center; }
+.stat-val { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; color: var(--accent); }
+.stat-label { font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem; }
+.result-list { background: var(--surface); border-radius: 14px; overflow: hidden; margin-bottom: 2rem; }
+.result-item { display: flex; align-items: center; gap: 1rem; padding: 0.9rem 1.2rem; border-bottom: 1px solid rgba(255,255,255,0.04); }
+.result-item:last-child { border-bottom: none; }
+.result-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.result-dot.ok { background: var(--success); }
+.result-dot.bad { background: var(--danger); }
+.result-q { flex: 1; font-size: 0.9rem; }
+.result-pts { font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; color: var(--accent); }
+
+/* MULTIPLAYER */
+.game-id-box { background: var(--surface2); border: 1.5px dashed rgba(240,192,64,0.3); border-radius: 12px; padding: 1.2rem; text-align: center; margin-bottom: 1.5rem; }
+.game-id-label { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.4rem; }
+.game-id-val { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; color: var(--accent); letter-spacing: 4px; }
+.open-games-list { margin-top: 1.5rem; }
+.open-game-row { display: flex; align-items: center; justify-content: space-between; padding: 0.8rem 1.2rem; background: var(--surface); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; margin-bottom: 0.5rem; }
+.vs-score { display: flex; gap: 1.5rem; align-items: center; font-family: 'Bebas Neue', sans-serif; font-size: 1.2rem; }
+.vs-sep { color: var(--text-muted); }
+</style>
+</head>
+<body>
+<div class="container">
+  <nav>
+    <a href="/" class="logo">Brain<span>Busters</span></a>
+    <div style="display:flex;gap:1rem;align-items:center;">
+      <span id="nav-user-info" style="color:var(--text-muted);font-size:0.9rem;"></span>
+      <a href="/" class="btn btn-outline btn-sm">← Startseite</a>
+    </div>
+  </nav>
+
+  <!-- ── SCREEN: LOBBY ── -->
+  <div class="screen active" id="screen-lobby">
+    <div class="screen-title">Spielmodus wählen</div>
+    <div class="screen-subtitle">Alleine oder gegen andere – du entscheidest!</div>
+
+    <div class="mode-grid">
+      <div class="mode-card selected" id="mode-single" onclick="selectMode('single')">
+        <div class="mode-icon">🧠</div>
+        <div class="mode-title">Singleplayer</div>
+        <div class="mode-desc">Gegen die Zeit. Sammle Punkte!</div>
+      </div>
+      <div class="mode-card" id="mode-multi" onclick="selectMode('multi')">
+        <div class="mode-icon">🆚</div>
+        <div class="mode-title">Multiplayer</div>
+        <div class="mode-desc">Tritt gegen andere an!</div>
+      </div>
+    </div>
+
+    <div class="screen-title" style="font-size:1.8rem;">Kategorie wählen</div>
+    <div class="category-grid" id="category-grid">Lade Kategorien...</div>
+
+    <div id="multi-options" style="display:none;margin-bottom:1.5rem;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+        <button class="btn btn-outline" onclick="createMultiGame()">🎮 Spiel erstellen</button>
+        <button class="btn btn-outline" onclick="showJoinGame()">🔗 Spiel beitreten</button>
+      </div>
+      <div id="open-games-section" style="display:none;margin-top:1.5rem;">
+        <div style="font-weight:600;margin-bottom:0.8rem;">Offene Spiele:</div>
+        <div id="open-games-list"></div>
+        <div style="margin-top:0.8rem;display:flex;gap:0.5rem;">
+          <input type="text" id="join-game-id" placeholder="Spiel-ID eingeben..." style="flex:1;padding:0.7rem;background:var(--surface2);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:var(--text);font-size:0.9rem;outline:none;">
+          <button class="btn btn-primary btn-sm" onclick="joinGameById()">Beitreten</button>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn btn-primary" onclick="startGame()" id="start-btn" style="width:100%;padding:1rem;font-size:1.1rem;">
+      🚀 Spiel starten
+    </button>
+    <div id="lobby-error" style="color:var(--danger);margin-top:0.8rem;font-size:0.9rem;text-align:center;"></div>
+  </div>
+
+  <!-- ── SCREEN: MULTIPLAYER WAIT ── -->
+  <div class="screen" id="screen-wait">
+    <div class="screen-title">Warte auf Gegner...</div>
+    <div class="game-id-box">
+      <div class="game-id-label">Teile diese Spiel-ID mit deinem Freund:</div>
+      <div class="game-id-val" id="wait-game-id">----</div>
+    </div>
+    <p style="color:var(--text-muted);text-align:center;margin-bottom:2rem;">Sobald ein Gegner beitritt, startet das Spiel automatisch!</p>
+    <div id="open-games-lobby" class="open-games-list"></div>
+    <button class="btn btn-outline" onclick="cancelWait()" style="margin-top:1.5rem;">Abbrechen</button>
+  </div>
+
+  <!-- ── SCREEN: QUIZ ── -->
+  <div class="screen" id="screen-quiz">
+    <div class="quiz-header">
+      <div class="score-display" id="score-display">0 Punkte</div>
+      <div class="progress-bar-wrap"><div class="progress-bar" id="progress-bar" style="width:0%"></div></div>
+      <div class="q-counter" id="q-counter">1 / 10</div>
+      <div class="timer-ring">
+        <svg width="70" height="70" viewBox="0 0 70 70">
+          <circle class="timer-track" cx="35" cy="35" r="30"/>
+          <circle class="timer-fill" id="timer-circle" cx="35" cy="35" r="30"/>
+        </svg>
+        <div class="timer-text" id="timer-text">20</div>
+      </div>
+    </div>
+
+    <div class="question-card">
+      <div class="question-category" id="q-category"></div>
+      <div class="question-text" id="q-text">Frage lädt...</div>
+      <div class="difficulty-stars" id="q-difficulty"></div>
+    </div>
+
+    <div class="answers-grid" id="answers-grid"></div>
+    <div class="feedback-bar" id="feedback-bar">
+      <span id="feedback-text"></span>
+      <span class="feedback-points" id="feedback-points"></span>
+    </div>
+  </div>
+
+  <!-- ── SCREEN: RESULTS ── -->
+  <div class="screen" id="screen-results">
+    <div class="results-hero">
+      <div id="result-emoji" style="font-size:4rem;margin-bottom:1rem;">🎉</div>
+      <div class="results-score" id="final-score">0</div>
+      <div class="results-label">Punkte erreicht</div>
+    </div>
+    <div class="results-stats">
+      <div class="stat-card"><div class="stat-val" id="stat-correct">0</div><div class="stat-label">Richtig</div></div>
+      <div class="stat-card"><div class="stat-val" id="stat-wrong">0</div><div class="stat-label">Falsch</div></div>
+      <div class="stat-card"><div class="stat-val" id="stat-avg-time">0s</div><div class="stat-label">Ø Zeit</div></div>
+    </div>
+
+    <div id="vs-result" style="display:none;background:var(--surface);border-radius:14px;padding:1.5rem;margin-bottom:1.5rem;text-align:center;">
+      <div style="color:var(--text-muted);font-size:0.85rem;margin-bottom:0.5rem;">Multiplayer Ergebnis</div>
+      <div class="vs-score" style="justify-content:center;">
+        <span id="vs-p1">Du: 0</span>
+        <span class="vs-sep">VS</span>
+        <span id="vs-p2">Gegner: 0</span>
+      </div>
+      <div id="vs-winner" style="margin-top:0.8rem;font-weight:700;font-size:1.1rem;"></div>
+    </div>
+
+    <h3 style="font-family:'Bebas Neue',sans-serif;font-size:1.5rem;margin-bottom:1rem;">Deine Antworten</h3>
+    <div class="result-list" id="result-list"></div>
+    <div style="display:flex;gap:1rem;flex-wrap:wrap;">
+      <button class="btn btn-primary" onclick="restartGame()" style="flex:1;">🔄 Nochmal spielen</button>
+      <a href="/" class="btn btn-outline" style="flex:1;">🏠 Startseite</a>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─────────────────────────────────────────
+//  State
+// ─────────────────────────────────────────
+let state = {
+  mode: 'single',
+  selectedCategory: null,
+  questions: [],
+  currentQ: 0,
+  score: 0,
+  answers: [],
+  gameId: null,
+  timerInterval: null,
+  timeLeft: 20,
+  questionStartTime: null,
+  waitInterval: null,
+  userId: null,
+  username: null,
+  categories: []
+};
+
+// ─────────────────────────────────────────
+//  Init
+// ─────────────────────────────────────────
+async function init() {
+  const res = await fetch('/api/me');
+  const me = await res.json();
+  if (me.logged_in) {
+    state.userId = me.id;
+    state.username = me.username;
+    document.getElementById('nav-user-info').textContent = `👤 ${me.username}`;
+  }
+  loadCategories();
+}
+
+async function loadCategories() {
+  const res = await fetch('/api/categories');
+  state.categories = await res.json();
+  const grid = document.getElementById('category-grid');
+  grid.innerHTML = state.categories.map(c => `
+    <div class="cat-card" id="cat-${c.id}" onclick="selectCategory(${c.id})">
+      <div class="cat-icon">${c.icon}</div>
+      <div class="cat-name">${c.name}</div>
+      <div class="cat-count">${c.question_count} Fragen</div>
+    </div>`).join('');
+}
+
+// ─────────────────────────────────────────
+//  Lobby
+// ─────────────────────────────────────────
+function selectMode(mode) {
+  state.mode = mode;
+  document.getElementById('mode-single').classList.toggle('selected', mode === 'single');
+  document.getElementById('mode-multi').classList.toggle('selected', mode === 'multi');
+  document.getElementById('multi-options').style.display = mode === 'multi' ? 'block' : 'none';
+  document.getElementById('start-btn').style.display = mode === 'single' ? 'block' : 'none';
+}
+
+function selectCategory(id) {
+  state.selectedCategory = id;
+  document.querySelectorAll('.cat-card').forEach(el => el.classList.remove('selected'));
+  document.getElementById(`cat-${id}`).classList.add('selected');
+}
+
+async function startGame() {
+  if (!state.selectedCategory) {
+    document.getElementById('lobby-error').textContent = 'Bitte zuerst eine Kategorie wählen!';
+    return;
+  }
+  if (!state.userId) {
+    document.getElementById('lobby-error').textContent = 'Bitte zuerst anmelden (Startseite)!';
+    return;
+  }
+  document.getElementById('lobby-error').textContent = '';
+
+  // Spiel starten
+  const res = await fetch('/api/game/start', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({category_id: state.selectedCategory, mode: state.mode})
+  });
+  const data = await res.json();
+  if (data.error) { document.getElementById('lobby-error').textContent = data.error; return; }
+  state.gameId = data.game_id;
+
+  // Fragen laden
+  const qRes = await fetch(`/api/questions/${state.selectedCategory}?count=10`);
+  state.questions = await qRes.json();
+  state.currentQ = 0;
+  state.score = 0;
+  state.answers = [];
+
+  showScreen('quiz');
+  showQuestion();
+}
+
+async function createMultiGame() {
+  if (!state.selectedCategory) {
+    document.getElementById('lobby-error').textContent = 'Bitte zuerst eine Kategorie wählen!';
+    return;
+  }
+  if (!state.userId) {
+    document.getElementById('lobby-error').textContent = 'Bitte zuerst anmelden!';
+    return;
+  }
+  const res = await fetch('/api/game/start', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({category_id: state.selectedCategory, mode: 'multi'})
+  });
+  const data = await res.json();
+  state.gameId = data.game_id;
+  document.getElementById('wait-game-id').textContent = state.gameId;
+  showScreen('wait');
+
+  // Auf Gegner warten
+  state.waitInterval = setInterval(async () => {
+    const r = await fetch(`/api/game/start`, {method:'GET'}).catch(()=>null);
+    // Simulierter Multiplayer: nach 30s auto-start mit Bot-Score
+    loadOpenGames();
+  }, 3000);
+  loadOpenGames();
+}
+
+async function loadOpenGames() {
+  const res = await fetch('/api/game/open_games');
+  const games = await res.json();
+  const container = document.getElementById('open-games-lobby') || document.getElementById('open-games-list');
+  if (!container) return;
+  if (!games.length) { container.innerHTML = '<p style="color:var(--text-muted);font-size:0.85rem;">Keine offenen Spiele.</p>'; return; }
+  container.innerHTML = games.map(g => `
+    <div class="open-game-row">
+      <span>${g.icon} <strong>${g.host}</strong> – ${g.category}</span>
+      <button class="btn btn-primary btn-sm" onclick="joinGame(${g.id})">Beitreten</button>
+    </div>`).join('');
+}
+
+function showJoinGame() {
+  const sec = document.getElementById('open-games-section');
+  sec.style.display = sec.style.display === 'none' ? 'block' : 'none';
+  if (sec.style.display === 'block') loadOpenGames();
+}
+
+async function joinGameById() {
+  const id = parseInt(document.getElementById('join-game-id').value);
+  if (!id) return;
+  joinGame(id);
+}
+
+async function joinGame(gameId) {
+  if (!state.userId) { alert('Bitte zuerst anmelden!'); return; }
+  const res = await fetch(`/api/game/join/${gameId}`, {method:'POST'});
+  const data = await res.json();
+  if (data.error) { alert(data.error); return; }
+  state.gameId = gameId;
+
+  // Kategorie aus offenem Spiel ermitteln
+  const catRes = await fetch('/api/game/open_games');
+  const openGames = await catRes.json();
+  // Da Spiel jetzt laufend, direkt Fragen laden mit gespeicherter Kategorie
+  if (!state.selectedCategory) state.selectedCategory = state.categories[0]?.id;
+
+  const qRes = await fetch(`/api/questions/${state.selectedCategory || 1}?count=10`);
+  state.questions = await qRes.json();
+  state.currentQ = 0; state.score = 0; state.answers = [];
+  showScreen('quiz');
+  showQuestion();
+}
+
+function cancelWait() {
+  clearInterval(state.waitInterval);
+  showScreen('lobby');
+}
+
+// ─────────────────────────────────────────
+//  Quiz
+// ─────────────────────────────────────────
+function showQuestion() {
+  if (state.currentQ >= state.questions.length) { endGame(); return; }
+  const q = state.questions[state.currentQ];
+  const cat = state.categories.find(c => c.id === q.category_id);
+
+  // Header
+  document.getElementById('q-counter').textContent = `${state.currentQ + 1} / ${state.questions.length}`;
+  document.getElementById('progress-bar').style.width = `${(state.currentQ / state.questions.length) * 100}%`;
+  document.getElementById('score-display').textContent = `${state.score} Pkt`;
+
+  // Frage
+  document.getElementById('q-category').textContent = cat ? `${cat.icon} ${cat.name}` : '';
+  document.getElementById('q-text').textContent = q.question;
+  document.getElementById('q-difficulty').textContent = '⭐'.repeat(q.difficulty);
+
+  // Antworten
+  const grid = document.getElementById('answers-grid');
+  grid.innerHTML = q.answers.map(a => `
+    <button class="answer-btn" onclick="selectAnswer('${a.key}', ${q.id})" id="ans-${a.key}">
+      <span class="answer-key">${a.key}</span>
+      <span>${a.text}</span>
+    </button>`).join('');
+
+  // Feedback zurücksetzen
+  const fb = document.getElementById('feedback-bar');
+  fb.className = 'feedback-bar';
+
+  // Timer
+  startTimer();
+  state.questionStartTime = Date.now();
+}
+
+function startTimer() {
+  clearInterval(state.timerInterval);
+  state.timeLeft = 20;
+  updateTimerUI();
+  state.timerInterval = setInterval(() => {
+    state.timeLeft--;
+    updateTimerUI();
+    if (state.timeLeft <= 0) {
+      clearInterval(state.timerInterval);
+      timeOut();
+    }
+  }, 1000);
+}
+
+function updateTimerUI() {
+  const t = state.timeLeft;
+  document.getElementById('timer-text').textContent = t;
+  const pct = t / 20;
+  const circ = 188;
+  document.getElementById('timer-circle').style.strokeDashoffset = circ * (1 - pct);
+  document.getElementById('timer-circle').style.stroke = t > 10 ? 'var(--accent)' : t > 5 ? '#ef9f27' : 'var(--danger)';
+}
+
+function timeOut() {
+  disableAnswers();
+  showFeedback(false, 0, 'Zeit abgelaufen! ⏰');
+  state.answers.push({ question: state.questions[state.currentQ].question, correct: false, points: 0 });
+  setTimeout(nextQuestion, 2000);
+}
+
+async function selectAnswer(key, questionId) {
+  clearInterval(state.timerInterval);
+  const responseTime = (Date.now() - state.questionStartTime) / 1000;
+  disableAnswers();
+
+  const res = await fetch('/api/check_answer', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({question_id: questionId, answer: key, response_time: responseTime})
+  });
+  const data = await res.json();
+
+  // Antworten einfärben
+  document.querySelectorAll('.answer-btn').forEach(btn => {
+    const btnKey = btn.querySelector('.answer-key').textContent;
+    if (btnKey === data.correct_answer) btn.classList.add('correct');
+    else if (btnKey === key && !data.correct) btn.classList.add('wrong');
+  });
+
+  state.score += data.points;
+  state.answers.push({
+    question: state.questions[state.currentQ].question,
+    correct: data.correct,
+    points: data.points,
+    responseTime: responseTime.toFixed(1)
+  });
+
+  showFeedback(data.correct, data.points, data.correct ?
+    `✅ Richtig! (${responseTime.toFixed(1)}s)` :
+    `❌ ${data.explanation}`);
+
+  setTimeout(nextQuestion, 2200);
+}
+
+function showFeedback(correct, points, text) {
+  const fb = document.getElementById('feedback-bar');
+  fb.className = `feedback-bar ${correct ? 'correct' : 'wrong'}`;
+  document.getElementById('feedback-text').textContent = text;
+  document.getElementById('feedback-points').textContent = correct ? `+${points} Pkt` : '';
+}
+
+function disableAnswers() {
+  document.querySelectorAll('.answer-btn').forEach(b => b.disabled = true);
+}
+
+function nextQuestion() {
+  state.currentQ++;
+  if (state.currentQ >= state.questions.length) { endGame(); return; }
+  showQuestion();
+}
+
+// ─────────────────────────────────────────
+//  Spielende
+// ─────────────────────────────────────────
+async function endGame() {
+  clearInterval(state.timerInterval);
+
+  // Score senden
+  if (state.gameId) {
+    await fetch('/api/game/submit_score', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({game_id: state.gameId, score: state.score})
+    });
+  }
+
+  // Statistiken
+  const correct = state.answers.filter(a => a.correct).length;
+  const wrong = state.answers.length - correct;
+  const avgTime = state.answers.length ?
+    (state.answers.reduce((s,a) => s + parseFloat(a.responseTime||10), 0) / state.answers.length).toFixed(1) : 0;
+
+  document.getElementById('final-score').textContent = state.score.toLocaleString();
+  document.getElementById('stat-correct').textContent = correct;
+  document.getElementById('stat-wrong').textContent = wrong;
+  document.getElementById('stat-avg-time').textContent = `${avgTime}s`;
+
+  // Emoji je nach Ergebnis
+  const pct = correct / state.questions.length;
+  document.getElementById('result-emoji').textContent = pct >= 0.8 ? '🏆' : pct >= 0.5 ? '😊' : '😅';
+
+  // Antwortliste
+  document.getElementById('result-list').innerHTML = state.answers.map((a,i) => `
+    <div class="result-item">
+      <div class="result-dot ${a.correct?'ok':'bad'}"></div>
+      <div class="result-q">
+        <div style="font-size:0.88rem;">${a.question}</div>
+        ${a.responseTime ? `<div style="font-size:0.75rem;color:var(--text-muted);">⏱ ${a.responseTime}s</div>` : ''}
+      </div>
+      <div class="result-pts">${a.correct ? `+${a.points}` : '0'}</div>
+    </div>`).join('');
+
+  showScreen('results');
+}
+
+function restartGame() {
+  state.currentQ = 0; state.score = 0; state.answers = [];
+  state.gameId = null;
+  showScreen('lobby');
+}
+
+// ─────────────────────────────────────────
+//  UI Helpers
+// ─────────────────────────────────────────
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(`screen-${name}`).classList.add('active');
+}
+
+init();
+</script>
+</body>
+</html>
