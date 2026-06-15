@@ -1,2 +1,7 @@
 flask>=2.3.0
 ^test 1 ih schreibe hier rein, was ich brauche, damit das Projekt läuft als test für github commit und teste auch autocomplete mashallah
+<<<<<<< HEAD
+Test 2.0 von Ilias.
+=======
+hi
+>>>>>>> b90813f6dc3c08b3ec9eb692c90e8bdd9d60ab1d
