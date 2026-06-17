@@ -73,7 +73,7 @@ class TestHelperFunctions(TestSetup):
     def test_calculate_points_correct_answer(self):
         """Richtige Antwort liefert Punkte > 0"""
         points = calculate_points(True, 5.0, 1)
-        self.assertGreater(points, 0)
+        self.assertGreater(0, points)
 
     def test_calculate_points_wrong_answer(self):
         """Falsche Antwort → 0 Punkte"""
